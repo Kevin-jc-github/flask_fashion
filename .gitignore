@@ -11,4 +11,4 @@ venv/
 .gcloud/
 key.json
 *.npy
-*.txt
+
