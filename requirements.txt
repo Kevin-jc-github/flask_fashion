@@ -6,6 +6,5 @@ torch
 tqdm
 Flask==2.3.2
 google-cloud-storage==2.14.0
-setuptools>=42
 clip @ git+https://github.com/openai/CLIP.git
 
