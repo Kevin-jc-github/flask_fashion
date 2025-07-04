@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8">
+    <title>李小悦的AI图像搜索助手</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Softy Pinko 样式 -->
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/font-awesome.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/templatemo-softy-pinko.css') }}" rel="stylesheet">
+
+    <style>
+        #image-preview img {
+            max-width: 200px;
+            border-radius: 8px;
+            margin-top: 10px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #loading {
+            display: none;
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        #loading-text {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        #lottie-loading {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Header -->
+    <header class="header-area header-sticky">
+        <div class="container">
+            <nav class="main-nav">
+                <a href="/" class="logo">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+                </a>
+                <ul class="nav">
+                    <li><a href="#search">Search</a></li>
+                </ul>
+                <a class='menu-trigger'><span>Menu</span></a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 搜索主区 -->
+    <div class="welcome-area" id="search">
+        <div class="header-text">
+            <div class="container">
+                <div class="row">
+                    <div class="offset-xl-2 col-xl-8 offset-lg-2 col-lg-8 col-md-12 col-sm-12 text-center">
+                        <h1><strong>李小悦的 专属 AI 图像搜索助手</strong></h1>
+                        <p>输入关键词或上传图片，让 AI 为你在海量图库中找到视觉灵感。</p>
+
+                        <!-- 搜索表单 -->
+                        <form method="POST" action="/" enctype="multipart/form-data" class="mt-4">
+                            <div class="form-group">
+                                <input type="text" name="text_query" id="text_query"
+                                    class="form-control form-control-lg" placeholder="输入关键词，例如：局限,冰冷,餐桌礼仪..." />
+                            </div>
+
+                            <div class="form-group mt-3">
+                                <input type="file" name="image_query" accept="image/*" class="form-control-file"
+                                    id="image_query">
+                                <div id="image-preview"></div>
+                            </div>
+
+                            <button type="submit" class="main-button mt-3">开始搜索</button>
+
+                            <!-- Lottie 加载动画 -->
+                            <div id="loading">
+                                <div id="loading-text">正在搜索中，请稍候...</div>
+                                <div id="lottie-loading"></div>
+                            </div>
+                        </form>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 col-md-12 col-sm-12">
+                    <ul class="social">
+                        <li><a href="#"><i class="fa fa-facebook"></i></a></li>
+                        <li><a href="#"><i class="fa fa-twitter"></i></a></li>
+                        <li><a href="#"><i class="fa fa-linkedin"></i></a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <p class="copyright">© 2025 李小悦AI小助手 | Powered by CLIP + GCS</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="{{ url_for('static', filename='js/jquery-2.1.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scrollreveal.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/waypoints.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/jquery.counterup.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/imgfix.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/custom.js') }}"></script>
+
+    <!-- Lottie -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lottie-web/5.7.13/lottie.min.js"></script>
+
+    <script>
+        const form = document.querySelector('form');
+        const textInput = document.getElementById('text_query');
+        const fileInput = document.getElementById('image_query');
+        const imagePreview = document.getElementById('image-preview');
+        const loading = document.getElementById('loading');
+
+        // 图片上传预览
+        fileInput.addEventListener('change', function () {
+            if (fileInput.files.length > 0) {
+                textInput.value = '';
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    imagePreview.innerHTML = `<img src="${e.target.result}" alt="preview">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.innerHTML = '';
+            }
+        });
+
+        // 提交表单 + 加载动画
+        form.addEventListener('submit', function (e) {
+            const text = textInput.value.trim();
+            const file = fileInput.files[0];
+
+            if (!text && !file) {
+                e.preventDefault();
+                alert("请输入关键词 或 上传一张图片 至少一种搜索方式！");
+            } else {
+                e.preventDefault();
+                loading.style.display = 'block';
+
+                // 启动 Lottie 动画
+                lottie.loadAnimation({
+                    container: document.getElementById('lottie-loading'),
+                    renderer: 'svg',
+                    loop: true,
+                    autoplay: true,
+                    path: "{{ url_for('static', filename='animations/loading.json') }}"
+                });
+
+                // 延迟提交以让动画显示
+                setTimeout(() => {
+                    form.submit();
+                }, 150);
+            }
+        });
+    </script>
+
+</body>
+
+</html>

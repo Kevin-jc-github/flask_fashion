@@ -1,0 +1,212 @@
+/* ===== 基础样式重置 ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* ===== 全局样式 ===== */
+body {
+    background-color: #f8f9fa;
+    color: #333;
+}
+
+.stApp {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e7f1 100%);
+    padding: 0 !important;
+}
+
+/* ===== 页眉样式 ===== */
+.header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    padding: 1.5rem 2rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+
+.header::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+    transform: rotate(30deg);
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.logo {
+    width: 100px;
+    height: 100px;
+}
+
+.stApp::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.85);
+    /* 白色半透明覆盖 */
+    z-index: -1;
+    /* 确保在背景之上但内容之下 */
+}
+
+/* ===== 华丽版增强样式 ===== */
+
+/* 毛玻璃卡片 + 阴影 + 渐变边框 */
+.search-card {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem auto;
+    max-width: 800px;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease-in-out;
+}
+
+/* 标签切换栏样式 */
+.tabs {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.tab-button {
+    background: transparent;
+    border: 2px solid #6a11cb;
+    color: #6a11cb;
+    padding: 0.6rem 1.2rem;
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.tab-button.active {
+    background: #6a11cb;
+    color: white;
+    box-shadow: 0 6px 16px rgba(106, 17, 203, 0.3);
+}
+
+/* 上传区域样式 */
+.upload-area {
+    border: 2px dashed #ccc;
+    border-radius: 16px;
+    padding: 2.5rem;
+    background: rgba(240, 240, 255, 0.6);
+    transition: border 0.3s ease;
+    text-align: center;
+    color: #444;
+    font-size: 1.1rem;
+}
+
+.upload-area:hover {
+    border: 2px dashed #6a11cb;
+    background: rgba(240, 240, 255, 0.8);
+}
+
+/* 按钮样式增强 */
+.tab-button,
+.upload-button,
+.search-button {
+    padding: 0.7rem 1.4rem;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+.tab-button:hover,
+.upload-button:hover,
+.search-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.25);
+}
+
+/* Tab 内容显隐控制 */
+.tab-content>div {
+    display: none;
+}
+
+.tab-content>.active {
+    display: block;
+}
+
+
+/* === 全局字体大小和行高调整 === */
+body,
+.stApp {
+    font-size: 18px !important;
+    line-height: 1.8 !important;
+    color: #222;
+    font-family: 'Inter', 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* === 标题字体增强 === */
+h1,
+h2,
+h3,
+.header h1 {
+    font-size: 2.2rem !important;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: #444;
+}
+
+/* === 卡片内容更有间距 === */
+.search-card,
+.sidebar-content,
+.result-card {
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border-radius: 16px;
+}
+
+/* === 输入框字体变大 === */
+input[type="text"],
+input[type="file"] {
+    font-size: 1.1rem;
+    padding: 0.6rem;
+}
+
+/* === 按钮字体变大 === */
+.search-button,
+.upload-button,
+.tab-button {
+    font-size: 1.1rem;
+    padding: 0.7rem 1.4rem;
+}
+
+/* === 灵感关键词放大 === */
+.keywords span {
+    font-size: 1.1rem;
+    padding: 0.4rem 0.8rem;
+    margin: 0.3rem;
+    display: inline-block;
+    background: #f0f2f5;
+    border-radius: 8px;
+}

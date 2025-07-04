@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="utf-8">
+    <title>搜索结果 - 李小悦的AI调研助手</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/font-awesome.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/templatemo-softy-pinko.css') }}" rel="stylesheet">
+
+    <style>
+        .gallery-container {
+            padding: 100px 15px 50px;
+        }
+
+        .gallery-title {
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 20px;
+            font-size: 22px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .image-grid img {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .image-grid img:hover {
+            transform: scale(1.03);
+        }
+
+        .download-button {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        .back-button {
+            display: block;
+            margin: 40px auto 0;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header-area header-sticky">
+        <div class="container">
+            <nav class="main-nav">
+                <a href="/" class="logo">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
+                </a>
+                <ul class="nav">
+                    <li><a href="/">Home</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <section class="gallery-container">
+        <div class="container">
+            <h2 class="gallery-title">Search results for: <em>{{ query }}</em></h2>
+            <p style="font-size: 16px; color: #666;" class="text-center mt-2 mb-4">
+                共 {{ total_results }} 张匹配图像，当前为第 {{ page }} / {{ total_pages }} 页
+            </p>
+
+            {% if images %}
+            <div class="image-grid">
+                {% for img in images %}
+                <div>
+                    <img src="{{ url_for('static', filename=img) }}" alt="Result Image">
+                    <div class="download-button">
+                        <a href="{{ url_for('static', filename=img) }}" download class="btn btn-sm btn-outline-success">
+                            <i class="fa fa-download"></i> 下载
+                        </a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-center mt-4">No results found for "{{ query }}".</p>
+            {% endif %}
+
+            {% if total_pages > 1 %}
+            <div class="text-center mt-4">
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center flex-wrap">
+                        {% if page > 1 %}
+                        <li class="page-item">
+                            <form method="POST">
+                                <input type="hidden" name="text_query" value="{{ query }}">
+                                <button formaction="/?page={{ page - 1 }}" class="page-link">«</button>
+                            </form>
+                        </li>
+                        {% endif %}
+
+                        {% set start_page = 1 if page - 2 < 1 else page - 2 %} 
+                        {% set end_page=total_pages if page + 2> total_pages else page +2 %}
+                        {% for p in range(start_page, end_page + 1) %}
+
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            {% if p == page %}
+                            <span class="page-link">{{ p }}</span>
+                            {% else %}
+                            <form method="POST">
+                                <input type="hidden" name="text_query" value="{{ query }}">
+                                <button formaction="/?page={{ p }}" class="page-link">{{ p }}</button>
+                            </form>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+
+                        {% if page < total_pages %} <li class="page-item">
+                            <form method="POST">
+                                <input type="hidden" name="text_query" value="{{ query }}">
+                                <button formaction="/?page={{ page + 1 }}" class="page-link">»</button>
+                            </form>
+                            </li>
+                            {% endif %}
+                    </ul>
+                </nav>
+
+                <form method="POST" class="form-inline justify-content-center mt-2">
+                    <input type="hidden" name="text_query" value="{{ query }}">
+                    <input type="number" name="target_page" min="1" max="{{ total_pages }}" class="form-control"
+                        placeholder="页码" required>
+                    <button formaction="/" class="btn btn-sm btn-primary ml-2">跳转</button>
+                </form>
+            </div>
+            {% endif %}
+
+            <div class="back-button">
+                <a href="/" class="btn btn-secondary">Back to Home</a>
+            </div>
+        </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='js/jquery-2.1.0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
+</body>
+
+</html>
