@@ -1,11 +1,13 @@
 services:
   - type: web
-    name: clip-search-app
+    name: flask_fashion
     env: python
     buildCommand: ""
-    startCommand: python flask/app.py
+    startCommand: python app.py
     envVars:
       - key: GOOGLE_APPLICATION_CREDENTIALS
         value: /etc/secrets/gcp_key.json
-    plan: free
-    region: oregon
+    secretFiles:
+      - name: gcp_key.json
+        mountPath: /etc/secrets/gcp_key.json
+    rootDir: .
