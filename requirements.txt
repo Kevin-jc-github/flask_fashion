@@ -1,7 +1,9 @@
-streamlit==1.22.0
+
 numpy==1.23.5
-torch==2.1.0           # 更新到兼容版本
-torchvision==0.16.0    # 对应更新
-clip@git+https://github.com/openai/CLIP.git
-google-cloud-storage==2.7.0
-pillow==9.4.0
+Pillow
+torch
+tqdm
+Flask==2.3.2
+google-cloud-storage==2.14.0
+setuptools>=42
+clip @ git+https://github.com/openai/CLIP.git
