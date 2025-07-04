@@ -61,4 +61,5 @@ def home():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 8000))  # Render 会提供 $PORT 环境变量
+    app.run(debug=False, host='0.0.0.0', port=port)
