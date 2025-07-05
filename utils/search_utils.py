@@ -4,6 +4,8 @@ import clip
 import numpy as np
 from PIL import Image
 from google.cloud import storage
+import json
+from google.oauth2 import service_account
 from io import BytesIO
 import os
 
@@ -13,8 +15,12 @@ FEATURE_FILE_GCS = "clip_features/image_features.npy"
 PATH_FILE_GCS = "clip_features/image_paths.txt"
 TOP_K = 50
 
-# GCP 凭证
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/gcp_key.json"
+# # GCP 凭证
+# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/gcp_key.json"
+# 从环境变量加载 json 内容
+gcp_key_content = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+gcp_credentials = service_account.Credentials.from_service_account_info(json.loads(gcp_key_content))
+
 
 # 设备和模型
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -23,13 +29,13 @@ model, preprocess = clip.load("ViT-B/32", device=device)
 # ================= 工具函数 =================
 
 def download_from_gcs(gcs_path, local_path):
-    client = storage.Client()
+    client = storage.Client(credentials=gcp_credentials)
     bucket = client.bucket(BUCKET_NAME)
     blob = bucket.blob(gcs_path)
     blob.download_to_filename(local_path)
 
 def load_features_and_paths():
-    client = storage.Client()
+    client = storage.Client(credentials=gcp_credentials)
     bucket = client.bucket(BUCKET_NAME)
 
     # 直接从 GCS 读取 .npy 特征文件为 bytes
