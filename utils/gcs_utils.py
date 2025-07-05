@@ -1,16 +1,12 @@
 from google.cloud import storage
-import json
 from google.oauth2 import service_account
 import os
 
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/gcp_key.json"
+# 从环境变量获取服务账号的文件路径（这是 Render 推荐的做法）
+gcp_key_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+gcp_credentials = service_account.Credentials.from_service_account_file(gcp_key_path)
 
-# 从环境变量加载 json 内容
-gcp_key_content = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-gcp_credentials = service_account.Credentials.from_service_account_info(json.loads(gcp_key_content))
-
-
-def download(bucket_name, blob_name, local_folder='flask/static/images_cache'):
+def download(bucket_name, blob_name, local_folder='static/images_cache'):
     """
     下载 GCS bucket 中的图片文件到本地 static/images_cache/ 文件夹。
 
@@ -39,4 +35,3 @@ def download(bucket_name, blob_name, local_folder='flask/static/images_cache'):
 
     print(f"✅ 下载完成: {blob_name} -> {local_path}")
     return os.path.join(local_folder, filename)
-

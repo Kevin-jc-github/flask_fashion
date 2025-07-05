@@ -1,81 +1,55 @@
-import faiss
+import os
+import json
+import numpy as np
 import torch
 import clip
-import numpy as np
 from PIL import Image
 from google.cloud import storage
-import json
 from google.oauth2 import service_account
-from io import BytesIO
-import os
 
-# ================= 配置 =================
-BUCKET_NAME = "clip-flickr-images-jcz"
-FEATURE_FILE_GCS = "clip_features/image_features.npy"
-PATH_FILE_GCS = "clip_features/image_paths.txt"
-TOP_K = 50
+# ====== 🔐 使用 GOOGLE_APPLICATION_CREDENTIALS 指定的 JSON key 文件路径 ======
+gcp_key_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+gcp_credentials = service_account.Credentials.from_service_account_file(gcp_key_path)
 
-# # GCP 凭证
-# os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "/etc/secrets/gcp_key.json"
-# 从环境变量加载 json 内容
-gcp_key_content = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
-gcp_credentials = service_account.Credentials.from_service_account_info(json.loads(gcp_key_content))
+# ====== 🪣 连接 GCS 并下载文件 ======
+client = storage.Client(credentials=gcp_credentials)
+bucket_name = "clip-flickr-images-jcz"
+bucket = client.bucket(bucket_name)
 
+def download_blob(blob_name, destination_file):
+    blob = bucket.blob(blob_name)
+    blob.download_to_filename(destination_file)
 
-# 设备和模型
+# ====== 📥 下载 clip_features 中的 .npy 和 .txt 文件 ======
+download_blob("clip_features/image_features.npy", "/tmp/image_features.npy")
+download_blob("clip_features/image_paths.txt", "/tmp/image_paths.txt")
+
+# ====== 📦 加载 CLIP 模型 ======
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model, preprocess = clip.load("ViT-B/32", device=device)
 
-# ================= 工具函数 =================
+# ====== 🔗 加载图像向量和路径 ======
+image_features = np.load("/tmp/image_features.npy", mmap_mode="r")
+with open("/tmp/image_paths.txt") as f:
+    image_paths = f.read().splitlines()
+image_features = torch.from_numpy(image_features).float().to(device)
 
-def download_from_gcs(gcs_path, local_path):
-    client = storage.Client(credentials=gcp_credentials)
-    bucket = client.bucket(BUCKET_NAME)
-    blob = bucket.blob(gcs_path)
-    blob.download_to_filename(local_path)
-
-def load_features_and_paths():
-    client = storage.Client(credentials=gcp_credentials)
-    bucket = client.bucket(BUCKET_NAME)
-
-    # 直接从 GCS 读取 .npy 特征文件为 bytes
-    feature_blob = bucket.blob(FEATURE_FILE_GCS)
-    feature_bytes = feature_blob.download_as_bytes()
-    features = np.load(BytesIO(feature_bytes)).astype("float32")
-
-    # 直接读取 image_paths.txt 内容为字符串
-    path_blob = bucket.blob(PATH_FILE_GCS)
-    path_bytes = path_blob.download_as_bytes()
-    image_paths = path_bytes.decode("utf-8").splitlines()
-
-    return features, image_paths
-
-# ================= 模块级初始化 =================
-features, image_paths = load_features_and_paths()
-faiss.normalize_L2(features)
-faiss_index = faiss.IndexFlatIP(features.shape[1])
-faiss_index.add(features)
-
-# ================= 查询函数 =================
-
-def search_by_text(text, top_k=TOP_K):
-    text_input = clip.tokenize([text]).to(device)
+# ====== 🔍 文本搜索函数 ======
+def search_by_text(query, top_k=50):
+    text_input = clip.tokenize([query]).to(device)
     with torch.no_grad():
         text_features = model.encode_text(text_input)
-    text_features /= text_features.norm(dim=-1, keepdim=True)
-    text_np = text_features.cpu().numpy().astype("float32")
+        text_features /= text_features.norm(dim=-1, keepdim=True)
+    similarities = (image_features @ text_features.T).squeeze(1)
+    best_indices = similarities.topk(top_k).indices
+    return [image_paths[i] for i in best_indices]
 
-    D, I = faiss_index.search(text_np, top_k)
-    return [image_paths[i] for i in I[0]]
-
-def search_by_image(file, top_k=TOP_K):
-    image = Image.open(file).convert("RGB")
-    image_input = preprocess(image).unsqueeze(0).to(device)
-
+# ====== 🖼️ 图像搜索函数 ======
+def search_by_image(image_path, top_k=50):
+    image = preprocess(Image.open(image_path)).unsqueeze(0).to(device)
     with torch.no_grad():
-        image_features = model.encode_image(image_input)
-    image_features /= image_features.norm(dim=-1, keepdim=True)
-    image_np = image_features.cpu().numpy().astype("float32")
-
-    D, I = faiss_index.search(image_np, top_k)
-    return [image_paths[i] for i in I[0]]
+        image_query_features = model.encode_image(image)
+        image_query_features /= image_query_features.norm(dim=-1, keepdim=True)
+    similarities = (image_features @ image_query_features.T).squeeze(1)
+    best_indices = similarities.topk(top_k).indices
+    return [image_paths[i] for i in best_indices]
